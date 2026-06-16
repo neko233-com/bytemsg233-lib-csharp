@@ -23,7 +23,7 @@ namespace ByteMsg233
         {
             if (IsEof)
             {
-                throw new InvalidOperationException("Unexpected end of ByteMsg buffer.");
+                throw new InvalidOperationException("Unexpected end of ByteMsg233 buffer.");
             }
 
             return _data[_offset++];
@@ -64,7 +64,7 @@ namespace ByteMsg233
             var length = checked((int)ReadVarint());
             if (length < 0 || length > Remaining)
             {
-                throw new InvalidOperationException("ByteMsg length-delimited field exceeds remaining buffer.");
+                throw new InvalidOperationException("ByteMsg233 length-delimited field exceeds remaining buffer.");
             }
 
             var bytes = new byte[length];
@@ -136,7 +136,7 @@ namespace ByteMsg233
                     ReadBytes();
                     return;
                 default:
-                    throw new NotSupportedException($"Unsupported ByteMsg wire type: {wireType}.");
+                    throw new NotSupportedException($"Unsupported ByteMsg233 wire type: {wireType}.");
             }
         }
     }
