@@ -1,11 +1,11 @@
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace ByteMsg233
 {
     public sealed class ByteMsgPool<T> where T : class
     {
-        private readonly ConcurrentBag<T> _items = new();
+        private readonly Stack<T> _items = new Stack<T>();
         private readonly Func<T> _factory;
         private readonly Action<T>? _reset;
 
@@ -17,7 +17,12 @@ namespace ByteMsg233
 
         public T Rent()
         {
-            return _items.TryTake(out var value) ? value : _factory();
+            if (_items.Count > 0)
+            {
+                return _items.Pop();
+            }
+
+            return _factory();
         }
 
         public void Return(T? value)
@@ -36,7 +41,7 @@ namespace ByteMsg233
                 resettable.Reset();
             }
 
-            _items.Add(value);
+            _items.Push(value);
         }
 
         public int Count => _items.Count;

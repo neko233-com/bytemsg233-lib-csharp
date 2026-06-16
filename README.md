@@ -7,7 +7,7 @@ This repository is designed for two use cases:
 - Unity projects through UPM with `com.neko233.bytemsg233`
 - generated C# code from `bytemsg233`
 
-The runtime stays small and native-feeling: writer, reader, object pool, enum helpers, and clean collection helpers without external dependencies.
+The runtime stays small and native-feeling: writer, reader, single-threaded object pool, enum helpers, and clean collection helpers without external dependencies.
 
 ## Unity Install
 
