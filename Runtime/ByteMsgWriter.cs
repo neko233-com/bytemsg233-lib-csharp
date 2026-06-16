@@ -87,6 +87,85 @@ namespace ByteMsg233
             WriteBytes(bytes);
         }
 
+        public void WritePackedVarints(IReadOnlyList<ulong>? values)
+        {
+            if (values == null)
+            {
+                WriteVarint(0);
+                return;
+            }
+
+            WriteVarint((ulong)values.Count);
+            for (var i = 0; i < values.Count; i++)
+            {
+                WriteVarint(values[i]);
+            }
+        }
+
+        public void WriteDeltaVarints(IReadOnlyList<ulong>? values)
+        {
+            if (values == null || values.Count == 0)
+            {
+                WriteVarint(0);
+                return;
+            }
+
+            WriteVarint((ulong)values.Count);
+            var previous = values[0];
+            WriteVarint(previous);
+            for (var i = 1; i < values.Count; i++)
+            {
+                var current = values[i];
+                WriteVarint(ZigZagEncode(unchecked((long)current - (long)previous)));
+                previous = current;
+            }
+        }
+
+        public void WriteBoolBitset(IReadOnlyList<bool>? values)
+        {
+            if (values == null)
+            {
+                WriteVarint(0);
+                return;
+            }
+
+            WriteVarint((ulong)values.Count);
+            byte current = 0;
+            for (var i = 0; i < values.Count; i++)
+            {
+                if (values[i])
+                {
+                    current |= (byte)(1 << (i & 7));
+                }
+
+                if ((i & 7) == 7)
+                {
+                    _stream.WriteByte(current);
+                    current = 0;
+                }
+            }
+
+            if ((values.Count & 7) != 0)
+            {
+                _stream.WriteByte(current);
+            }
+        }
+
+        public void WriteStringList(IReadOnlyList<string>? values)
+        {
+            if (values == null)
+            {
+                WriteVarint(0);
+                return;
+            }
+
+            WriteVarint((ulong)values.Count);
+            for (var i = 0; i < values.Count; i++)
+            {
+                WriteString(values[i]);
+            }
+        }
+
         public void WriteBytes(byte[]? value)
         {
             value ??= Array.Empty<byte>();

@@ -52,6 +52,21 @@ Assert(hero.State == HeroState.Moving, "enum should restore");
 Assert(hero.Tags.Count == 2 && hero.Tags[1] == "b", "list should roundtrip");
 Assert(hero.Attrs["hp"] == "99", "map should roundtrip");
 
+var blockWriter = new ByteMsgWriter();
+blockWriter.WritePackedVarints(new List<ulong> { 1, 2, 127, 128 });
+blockWriter.WriteDeltaVarints(new List<ulong> { 100, 101, 109 });
+blockWriter.WriteBoolBitset(new List<bool> { true, false, true, true, false, true, false, false, true });
+blockWriter.WriteStringList(new List<string> { "rank", "battle" });
+var blockReader = new ByteMsgReader(blockWriter.ToArray());
+var packed = blockReader.ReadPackedVarints();
+Assert(packed.Count == 4 && packed[3] == 128, "packed varint roundtrip failed");
+var delta = blockReader.ReadDeltaVarints();
+Assert(delta.Count == 3 && delta[2] == 109, "delta varint roundtrip failed");
+var flags = blockReader.ReadBoolBitset();
+Assert(flags.Count == 9 && flags[0] && !flags[1] && flags[8], "bool bitset roundtrip failed");
+var strings = blockReader.ReadStringList();
+Assert(strings.Count == 2 && strings[1] == "battle", "string list roundtrip failed");
+
 hero.Release();
 var reused = Hero.Rent();
 Assert(reused.Id == 0, "pool should reset id");

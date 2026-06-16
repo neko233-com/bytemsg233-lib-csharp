@@ -78,6 +78,91 @@ namespace ByteMsg233
             return Encoding.UTF8.GetString(ReadBytes());
         }
 
+        public List<ulong> ReadPackedVarints(List<ulong>? values = null)
+        {
+            var count = checked((int)ReadVarint());
+            values ??= new List<ulong>(count);
+            values.Clear();
+            if (values.Capacity < count)
+            {
+                values.Capacity = count;
+            }
+
+            for (var i = 0; i < count; i++)
+            {
+                values.Add(ReadVarint());
+            }
+
+            return values;
+        }
+
+        public List<ulong> ReadDeltaVarints(List<ulong>? values = null)
+        {
+            var count = checked((int)ReadVarint());
+            values ??= new List<ulong>(count);
+            values.Clear();
+            if (values.Capacity < count)
+            {
+                values.Capacity = count;
+            }
+
+            if (count == 0)
+            {
+                return values;
+            }
+
+            var current = ReadVarint();
+            values.Add(current);
+            for (var i = 1; i < count; i++)
+            {
+                current = unchecked((ulong)((long)current + ByteMsgWriter.ZigZagDecode(ReadVarint())));
+                values.Add(current);
+            }
+
+            return values;
+        }
+
+        public List<bool> ReadBoolBitset(List<bool>? values = null)
+        {
+            var count = checked((int)ReadVarint());
+            values ??= new List<bool>(count);
+            values.Clear();
+            if (values.Capacity < count)
+            {
+                values.Capacity = count;
+            }
+
+            for (var i = 0; i < count; i += 8)
+            {
+                var current = ReadByte();
+                var limit = Math.Min(8, count - i);
+                for (var bit = 0; bit < limit; bit++)
+                {
+                    values.Add((current & (1 << bit)) != 0);
+                }
+            }
+
+            return values;
+        }
+
+        public List<string> ReadStringList(List<string>? values = null)
+        {
+            var count = checked((int)ReadVarint());
+            values ??= new List<string>(count);
+            values.Clear();
+            if (values.Capacity < count)
+            {
+                values.Capacity = count;
+            }
+
+            for (var i = 0; i < count; i++)
+            {
+                values.Add(ReadString());
+            }
+
+            return values;
+        }
+
         public ByteMsgFieldHeader ReadFieldHeader()
         {
             var raw = checked((int)ReadVarint());
