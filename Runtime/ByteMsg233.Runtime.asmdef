@@ -1,0 +1,14 @@
+{
+  "name": "ByteMsg233.Runtime",
+  "rootNamespace": "ByteMsg233",
+  "references": [],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

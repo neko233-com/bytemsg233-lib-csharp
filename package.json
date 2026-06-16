@@ -1,0 +1,18 @@
+{
+  "name": "com.neko233.bytemsg233",
+  "version": "0.1.0",
+  "displayName": "ByteMsg233 Runtime",
+  "description": "Unity-friendly C# runtime for bytemsg233 binary schemas.",
+  "unity": "2021.3",
+  "license": "MIT",
+  "author": {
+    "name": "neko233-com"
+  },
+  "keywords": [
+    "bytemsg233",
+    "serialization",
+    "binary",
+    "unity",
+    "runtime"
+  ]
+}
