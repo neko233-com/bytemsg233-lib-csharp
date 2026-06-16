@@ -6,6 +6,7 @@
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <AssemblyName>ByteMsg233</AssemblyName>
     <RootNamespace>ByteMsg233</RootNamespace>
+    <Version>1.0.0</Version>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Runtime/**/*.cs" />

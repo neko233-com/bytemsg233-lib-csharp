@@ -27,6 +27,12 @@ Or add it to `Packages/manifest.json`:
 }
 ```
 
+Copy-based install from the main repository:
+
+```bash
+bytemsg233 install-lib csharp --to ./Assets/Plugins/ByteMsg233
+```
+
 ## Runtime Shape
 
 ```csharp
