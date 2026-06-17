@@ -4,15 +4,13 @@ namespace ByteMsg233
 {
     public readonly struct ByteMsgProtocolHello
     {
-        public ByteMsgProtocolHello(ulong version, ulong fingerprint, ulong minCompatible)
+        public ByteMsgProtocolHello(ulong version, ulong minCompatible)
         {
             Version = version;
-            Fingerprint = fingerprint;
             MinCompatible = minCompatible;
         }
 
         public ulong Version { get; }
-        public ulong Fingerprint { get; }
         public ulong MinCompatible { get; }
     }
 
@@ -21,15 +19,13 @@ namespace ByteMsg233
         public static void WriteHello(ByteMsgWriter writer, ByteMsgProtocolHello hello)
         {
             writer.WriteULongField(1, hello.Version);
-            writer.WriteULongField(2, hello.Fingerprint);
-            writer.WriteULongField(3, hello.MinCompatible);
+            writer.WriteULongField(2, hello.MinCompatible);
         }
 
         public static ByteMsgProtocolHello ReadHello(byte[] data)
         {
             var reader = new ByteMsgReader(data);
             ulong version = 0;
-            ulong fingerprint = 0;
             ulong minCompatible = 0;
 
             while (!reader.IsEof)
@@ -41,9 +37,6 @@ namespace ByteMsg233
                         version = reader.ReadVarint();
                         break;
                     case 2:
-                        fingerprint = reader.ReadVarint();
-                        break;
-                    case 3:
                         minCompatible = reader.ReadVarint();
                         break;
                     default:
@@ -52,16 +45,11 @@ namespace ByteMsg233
                 }
             }
 
-            return new ByteMsgProtocolHello(version, fingerprint, minCompatible);
+            return new ByteMsgProtocolHello(version, minCompatible);
         }
 
         public static void CheckCompatible(ByteMsgProtocolHello local, ByteMsgProtocolHello remote)
         {
-            if (local.Fingerprint != 0 && remote.Fingerprint != 0 && local.Fingerprint != remote.Fingerprint)
-            {
-                throw new InvalidOperationException("ByteMsg233 protocol fingerprint mismatch.");
-            }
-
             if (remote.Version < local.MinCompatible || local.Version < remote.MinCompatible)
             {
                 throw new InvalidOperationException("ByteMsg233 protocol version mismatch.");

@@ -87,10 +87,10 @@ bytesReader.ReadBytes(reusableBytes);
 Assert(reusableBytes.Length == 2 && reusableBytes.Capacity == byteCapacity && reusableBytes.Span[1] == 6, "byte buffer should reuse capacity");
 
 var helloWriter = new ByteMsgWriter();
-var localHello = new ByteMsgProtocolHello(7, 0xabc, 6);
+var localHello = new ByteMsgProtocolHello(7, 6);
 ByteMsgProtocol.WriteHello(helloWriter, localHello);
 var remoteHello = ByteMsgProtocol.ReadHello(helloWriter.ToArray());
-Assert(remoteHello.Version == 7 && remoteHello.Fingerprint == 0xabc && remoteHello.MinCompatible == 6, "protocol hello roundtrip failed");
+Assert(remoteHello.Version == 7 && remoteHello.MinCompatible == 6, "protocol hello roundtrip failed");
 ByteMsgProtocol.CheckCompatible(localHello, remoteHello);
 
 hero.Release();
