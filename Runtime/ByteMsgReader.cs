@@ -73,9 +73,58 @@ namespace ByteMsg233
             return bytes;
         }
 
+        public ByteMsgByteBuffer ReadBytes(ByteMsgByteBuffer? target)
+        {
+            var length = checked((int)ReadVarint());
+            if (length < 0 || length > Remaining)
+            {
+                throw new InvalidOperationException("ByteMsg233 length-delimited field exceeds remaining buffer.");
+            }
+
+            target ??= new ByteMsgByteBuffer(length);
+            target.SetLength(length);
+            Buffer.BlockCopy(_data, _offset, target.Buffer, 0, length);
+            _offset += length;
+            return target;
+        }
+
         public string ReadString()
         {
             return Encoding.UTF8.GetString(ReadBytes());
+        }
+
+        public uint ReadFixed32()
+        {
+            if (Remaining < 4)
+            {
+                throw new InvalidOperationException("ByteMsg233 fixed32 field exceeds remaining buffer.");
+            }
+
+            var value = (uint)(_data[_offset]
+                | (_data[_offset + 1] << 8)
+                | (_data[_offset + 2] << 16)
+                | (_data[_offset + 3] << 24));
+            _offset += 4;
+            return value;
+        }
+
+        public ulong ReadFixed64()
+        {
+            if (Remaining < 8)
+            {
+                throw new InvalidOperationException("ByteMsg233 fixed64 field exceeds remaining buffer.");
+            }
+
+            var value = (ulong)_data[_offset]
+                | ((ulong)_data[_offset + 1] << 8)
+                | ((ulong)_data[_offset + 2] << 16)
+                | ((ulong)_data[_offset + 3] << 24)
+                | ((ulong)_data[_offset + 4] << 32)
+                | ((ulong)_data[_offset + 5] << 40)
+                | ((ulong)_data[_offset + 6] << 48)
+                | ((ulong)_data[_offset + 7] << 56);
+            _offset += 8;
+            return value;
         }
 
         public List<ulong> ReadPackedVarints(List<ulong>? values = null)
@@ -217,8 +266,14 @@ namespace ByteMsg233
                 case ByteMsgWireType.Varint:
                     ReadVarint();
                     return;
+                case ByteMsgWireType.Fixed64:
+                    ReadFixed64();
+                    return;
                 case ByteMsgWireType.LengthDelimited:
                     ReadBytes();
+                    return;
+                case ByteMsgWireType.Fixed32:
+                    ReadFixed32();
                     return;
                 default:
                     throw new NotSupportedException($"Unsupported ByteMsg233 wire type: {wireType}.");

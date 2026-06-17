@@ -11,10 +11,18 @@ static void Assert(bool condition, string message)
 }
 
 var writer = new ByteMsgWriter();
+writer.WriteFieldHeader(99, ByteMsgWireType.Varint);
+writer.WriteVarint(9001);
 writer.WriteUIntField(1, 123);
+writer.WriteFieldHeader(100, ByteMsgWireType.LengthDelimited);
+writer.WriteString("future");
 writer.WriteStringField(2, "Hero");
 writer.WriteEnumField(3, (int)HeroState.Moving);
+writer.WriteFieldHeader(101, ByteMsgWireType.Fixed32);
+writer.WriteFixed32(0x12345678);
 writer.WriteListField(4, new List<string> { "a", "b" }, (w, value) => w.WriteString(value));
+writer.WriteFieldHeader(102, ByteMsgWireType.Fixed64);
+writer.WriteFixed64(0x0102030405060708);
 writer.WriteMapField(5, new Dictionary<string, string> { ["hp"] = "99" }, (w, key) => w.WriteString(key), (w, value) => w.WriteString(value));
 
 var reader = new ByteMsgReader(writer.ToArray());
@@ -66,6 +74,24 @@ var flags = blockReader.ReadBoolBitset();
 Assert(flags.Count == 9 && flags[0] && !flags[1] && flags[8], "bool bitset roundtrip failed");
 var strings = blockReader.ReadStringList();
 Assert(strings.Count == 2 && strings[1] == "battle", "string list roundtrip failed");
+
+var bytesWriter = new ByteMsgWriter();
+bytesWriter.WriteBytes(new byte[] { 1, 2, 3, 4 });
+bytesWriter.WriteBytes(new byte[] { 5, 6 });
+var bytesReader = new ByteMsgReader(bytesWriter.ToArray());
+var reusableBytes = new ByteMsgByteBuffer(4);
+bytesReader.ReadBytes(reusableBytes);
+var byteCapacity = reusableBytes.Capacity;
+Assert(reusableBytes.Length == 4 && reusableBytes.Span[3] == 4, "byte buffer first read failed");
+bytesReader.ReadBytes(reusableBytes);
+Assert(reusableBytes.Length == 2 && reusableBytes.Capacity == byteCapacity && reusableBytes.Span[1] == 6, "byte buffer should reuse capacity");
+
+var helloWriter = new ByteMsgWriter();
+var localHello = new ByteMsgProtocolHello(7, 0xabc, 6);
+ByteMsgProtocol.WriteHello(helloWriter, localHello);
+var remoteHello = ByteMsgProtocol.ReadHello(helloWriter.ToArray());
+Assert(remoteHello.Version == 7 && remoteHello.Fingerprint == 0xabc && remoteHello.MinCompatible == 6, "protocol hello roundtrip failed");
+ByteMsgProtocol.CheckCompatible(localHello, remoteHello);
 
 hero.Release();
 var reused = Hero.Rent();

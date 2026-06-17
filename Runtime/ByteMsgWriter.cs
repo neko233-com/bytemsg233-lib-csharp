@@ -169,8 +169,40 @@ namespace ByteMsg233
         public void WriteBytes(byte[]? value)
         {
             value ??= Array.Empty<byte>();
+            WriteBytes(value.AsSpan());
+        }
+
+        public void WriteBytes(ReadOnlySpan<byte> value)
+        {
             WriteVarint((ulong)value.Length);
-            _stream.Write(value, 0, value.Length);
+            _stream.Write(value);
+        }
+
+        public void WriteBytes(ByteMsgByteBuffer? value)
+        {
+            WriteBytes(value == null ? ReadOnlySpan<byte>.Empty : value.Span);
+        }
+
+        public void WriteFixed32(uint value)
+        {
+            _scratch[0] = (byte)value;
+            _scratch[1] = (byte)(value >> 8);
+            _scratch[2] = (byte)(value >> 16);
+            _scratch[3] = (byte)(value >> 24);
+            _stream.Write(_scratch, 0, 4);
+        }
+
+        public void WriteFixed64(ulong value)
+        {
+            _scratch[0] = (byte)value;
+            _scratch[1] = (byte)(value >> 8);
+            _scratch[2] = (byte)(value >> 16);
+            _scratch[3] = (byte)(value >> 24);
+            _scratch[4] = (byte)(value >> 32);
+            _scratch[5] = (byte)(value >> 40);
+            _scratch[6] = (byte)(value >> 48);
+            _scratch[7] = (byte)(value >> 56);
+            _stream.Write(_scratch, 0, 8);
         }
 
         public void WriteFieldHeader(int tag, ByteMsgWireType wireType)
